@@ -64,7 +64,7 @@ while True:
 	# Update fan level
 	os.system("echo level %d | sudo tee /proc/acpi/ibm/fan"%(level,))
 	
-	# Also every 2 minutes update the other states in case they have been removed (e.g. from connecting means)		
+	# Also every 2 minutes update the other states in case they have been removed (e.g. from connecting the power supply)		
 	if counter==0:
 		os.system(tdpfix+wakefix)
 	counter=(counter+1)%24
