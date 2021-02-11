@@ -15,7 +15,7 @@ After=multi-user.target[Service]
 [Service]
 Type=idle
 User=root
-ExecStart=/usr/bin/pypy /home/philippos/Documents/scripts/l14fix.py >/dev/null
+ExecStart=/usr/bin/pypy /home/philippos/Documents/scripts/l14fix2.py >/dev/null
 WantedBy=multi-user.target
 
 [Install]
