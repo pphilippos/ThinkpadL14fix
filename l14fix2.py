@@ -15,7 +15,7 @@ After=multi-user.target[Service]
 [Service]
 Type=idle
 User=root
-ExecStart=/usr/bin/pypy /home/philippos/Documents/scripts/l14fix2.py >/dev/null
+ExecStart=/usr/bin/pypy /home/philippos/Documents/scripts/l14fix.py >/dev/null
 WantedBy=multi-user.target
 
 [Install]
@@ -34,10 +34,11 @@ import commands
 os.system("sleep 20")
 
 # Some other useful commands for my laptop
-os.system("echo 80 | sudo tee /sys/class/power_supply/BAT0/charge_stop_threshold")
-os.system("sudo auditctl -e 0")
-os.system("sudo sysctl -w kernel.dmesg_restrict=0")
-os.system("sudo sysctl kernel.sysrq=1")
+#os.system("echo 80 | sudo tee /sys/class/power_supply/BAT0/charge_stop_threshold")
+#os.system("sudo auditctl -e 0")
+#os.system("sudo sysctl -w kernel.dmesg_restrict=0")
+#os.system("sudo sysctl kernel.sysrq=1")
+#os.system("cp -R /usr/lib/modules/`uname -r` /dev/shm")
 
 # Disable waking up on all other events except the lid and the power button
 wakefix="cat /proc/acpi/wakeup | awk '{if(($3==\"*enabled\") && ($1!=\"LID\") && ($1!=\"SLPB\")) print $1}'| sudo tee /proc/acpi/wakeup"
@@ -52,12 +53,20 @@ tdpstr= "sudo ryzenadj --stapm-limit=%d000 --fast-limit=%d000 --slow-limit=%d000
 os.system("echo watchdog 120 | sudo tee /proc/acpi/ibm/fan")
 
 minumum_fan_speed = 0 # an integer from 0 to 7
+minimum_tdp = 5
+minimum_tdp_bat = 5
+maximum_tdp = 15
+
+# (The formulas are optimised for minimum_tdp = 5 and maximum_tdp = 25)
 
 continuous_zero = 0
 counter = 0
 
 last_level=1
-last_tdp=20
+last_tdp=0
+
+#last_bright=50
+#closed = False
 
 while True:
 	
@@ -87,14 +96,25 @@ while True:
 	last_level=level
 	
 	newwatts=25-int((max(75,min(tdie,100))-75)/1.5)
-	tdp = min(25,max( newwatts ,5))
+	tdp = min(maximum_tdp,max( newwatts ,minimum_tdp))
 	# if on battery
 	if commands.getoutput("cat /sys/class/power_supply/AC/online")=='0':
-		tdp=5
+		tdp=minimum_tdp_bat		
 	if tdp!=last_tdp:
 		os.system (tdpstr%(tdp,tdp,tdp))	
+	last_tdp=tdp
 	
-	# Also every 1 minute update the other states in case they have been removed (e.g. from connecting the power supply)		
+	if counter==0:
+		if "closed" in commands.getoutput("cat /proc/acpi/button/lid/LID/state"):
+			os.system ("echo 0 | sudo tee /sys/class/backlight/amdgpu_bl0/brightness")
+	#		closed = True
+	#	else:
+	#		if closed == True:
+	#			os.system ("echo %d | sudo tee /sys/class/backlight/amdgpu_bl0/brightness"%(last_bright,))
+	#		closed = False
+	#		last_bright = int(commands.getoutput("cat /sys/class/backlight/amdgpu_bl0/brightness"))
+	
+	# Also every 1 minute update the other states in case they have been removed (e.g. from connecting the power supply)	
 
 	counter=(counter+1)%12
 	
