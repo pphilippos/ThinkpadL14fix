@@ -55,7 +55,7 @@ os.system("echo watchdog 120 | sudo tee /proc/acpi/ibm/fan")
 minumum_fan_speed = 0 # an integer from 0 to 7
 minimum_tdp = 5
 minimum_tdp_bat = 5
-maximum_tdp = 15
+maximum_tdp = 18 #25
 
 # (The formulas are optimised for minimum_tdp = 5 and maximum_tdp = 25)
 
